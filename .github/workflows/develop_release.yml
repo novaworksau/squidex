@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 env:
-  CONTAINER_NAME: mediamist-api
+  CONTAINER_NAME: squidex
   BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
 
 jobs:
