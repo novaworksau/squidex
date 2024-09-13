@@ -369,7 +369,7 @@ public class AssetSASCustomMiddleware : ICustomCommandMiddleware
 
         await _domainObjectCache.SetAsync(f.UniqueId, oldSnapshot.Version, oldSnapshot, default);
         await _domainObjectCache.SetAsync(f.UniqueId, f.Snapshot.Version, f.Snapshot, default);
-
+        
         var payload = await EnrichResultAsync(context, r, ct);
         context.Complete(payload);
 
@@ -392,7 +392,7 @@ public class AssetSASCustomMiddleware : ICustomCommandMiddleware
             return payload;
         }
 
-        if (result.IsChanged && context.Command is UploadAssetCommand)
+        if (result.IsChanged && context.Command is UploadAssetSASCommand)
         {
             var tempFile = context.ContextId.ToString();
             try
