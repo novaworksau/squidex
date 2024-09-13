@@ -1,5 +1,4 @@
 name: Squidex SERVER
-
 on:
   push:
     branches:
