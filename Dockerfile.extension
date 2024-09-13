@@ -1,0 +1,23 @@
+FROM squidex/squidex:dev-8090 as squidex
+RUN useradd -d /home/appuser -ms /bin/bash appuser
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+COPY backend .
+RUN dotnet restore ./extensions/Squidex.Extensions.AssetSAS/Squidex.Extensions.AssetSAS.csproj
+RUN dotnet build --no-restore --configuration Release ./extensions/Squidex.Extensions.AssetSAS/Squidex.Extensions.AssetSAS.csproj --output /build
+
+FROM squidex as final
+COPY --from=build /build/Squidex.Extensions.AssetSAS.dll /app/plugins/Squidex.Extensions.AssetSAS.dll
+COPY --from=build /build/MimeTypesMap.dll /app/MimeTypesMap.dll
+
+ENV PLUGINS__1 /app/plugins/Squidex.Extensions.AssetSAS.dll
+USER appuser
+EXPOSE 8080
+EXPOSE 8443
+ENV ASPNETCORE_HTTP_PORTS=8080;8443
+ENV ASPNETCORE_HTTPS_PORT=8443

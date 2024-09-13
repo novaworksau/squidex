@@ -1,0 +1,61 @@
+name: Publish Container to Registry
+description: Publishes a container to the docker registry
+inputs:
+  acr-name: 
+    description: Sets the ACR name to publish to
+    required: true
+  image-name: 
+    required: true
+    description: Sets the image name to push
+  image-tag: 
+    description: Sets the image tag to push
+    required: true
+  az-tenant-id:
+    description: Sets the ACR tenant id
+    required: true
+  az-client-id:
+    description: Sets the ACR application id
+    required: true
+  az-subscription-id:
+    description: Sets the ACR Application Secret
+    required: true
+  publish-latest:
+    description: Will retag and publish latest
+    required: true
+
+runs:
+  using: composite
+  steps:
+  - name: Login Azure CLI
+    uses: Azure/login@v1
+    with:
+      client-id: ${{ inputs.az-client-id }}
+      tenant-id: ${{ inputs.az-tenant-id }}
+      subscription-id: ${{ inputs.az-subscription-id }}
+
+  - name: Login Azure ACR
+    uses: Azure/CLI@v1
+    with:
+      inlineScript: |
+        echo "DOCKER_TOKEN=$(az acr login --name ${{ inputs.acr-name }} --expose-token --output tsv --query accessToken)" >> $GITHUB_ENV
+
+  - uses: azure/docker-login@v1
+    with:
+      login-server: ${{ inputs.acr-name }}.azurecr.io
+      username: 00000000-0000-0000-0000-000000000000
+      password: ${{ env.DOCKER_TOKEN }}
+
+  - name: Publish Tagged Image
+    run: |
+      docker push ${{ inputs.acr-name }}.azurecr.io/${{ inputs.image-name }}:${{ inputs.image-tag }}
+    shell: bash
+
+  - name: Publish Latest Immage
+    if: ${{ inputs.publish-latest }}
+    run: |
+      docker tag ${{ inputs.acr-name }}.azurecr.io/${{ inputs.image-name }}:${{ inputs.image-tag }} ${{ inputs.acr-name }}.azurecr.io/${{ inputs.image-name }}:latest
+      docker push ${{ inputs.acr-name }}.azurecr.io/${{ inputs.image-name }}:latest
+    shell: bash
+
+      
+  

@@ -35,3 +35,4 @@ launchSettings.json
 
 /frontend/app-config/localhost-key.pem
 /frontend/app-config/localhost.pem
+.env

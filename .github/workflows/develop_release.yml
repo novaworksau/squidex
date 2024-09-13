@@ -1,0 +1,45 @@
+name: Squidex SERVER
+
+on:
+  push:
+    branches:
+        - 'develop'
+  workflow_dispatch: {}
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  CONTAINER_NAME: mediamist-api
+  BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
+
+jobs:
+  publish:
+    name: Build and Publish Docker Image
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: dev
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Build and Test Docker Image
+      uses: ./.github/actions/build-docker
+      id: build
+      with:
+        image-name: ${{ env.CONTAINER_NAME}}
+        image-tag: ${{ github.sha }}
+        docker-file: "./pkg/api/Dockerfile"
+        docker-context: "./pkg"
+        github-token: ${{ secrets.GITHUB_TOKEN}}
+
+    - name: Publish Docker Images
+      uses: ./.github/actions/publish-container
+      with:
+        acr-name: portalcontainers
+        image-name: ${{ env.CONTAINER_NAME}}
+        image-tag: ${{ github.sha }}
+        az-tenant-id: ${{ secrets.ACR_TEST_TENANT_ID }}
+        az-client-id: ${{ secrets.ACR_TEST_APP_ID }}
+        az-subscription-id: ${{ secrets.AZ_TEST_SUBSCRIPTIONID }}
+        publish-latest: true

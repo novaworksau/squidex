@@ -23,4 +23,6 @@ public abstract class UploadAssetCommand : AssetCommand
     public string FileHash { get; set; }
 
     public string FileId { get; set; }
+
+  
 }

@@ -1,0 +1,54 @@
+name: Build and Scan Docker Image
+description: This task will build and publish a docker image with outputs for the image tag
+inputs:
+  image-name:
+    description: Sets the image name (docker image name)
+    required: true
+  image-tag:
+    description: Sets the image tag
+    required: true
+  docker-file:
+    description: Sets the path to the docker file
+    required: true
+  docker-context:
+    description: Sets the docker context
+    required: true
+  
+  github-token:
+    description: Sets the github token
+    required: true
+
+  trivy-skip-dirs:
+    description: Sets any directories to skip scanning
+    default: ''
+  
+  trivy-enabled:
+    description: Sets if trivy is enabled
+    default: 'true'
+
+runs:
+  using: composite
+  steps:
+   
+    - name: Build Docker Image
+      uses: docker/build-push-action@v5
+      with:
+        push: false
+        context: ${{ inputs.docker-context }}
+        file: ${{ inputs.docker-file }}
+        tags: portalcontainers.azurecr.io/${{ inputs.image-name }}:${{ inputs.image-tag }}
+        build-args: GITHUBPAT=${{ inputs.github-token}}
+
+    - name: Scan Docker Image
+      uses: aquasecurity/trivy-action@master
+      if: ${{ inputs.trivy-enabled == 'true' }}
+      with:
+        image-ref: portalcontainers.azurecr.io/${{ inputs.image-name }}:${{ inputs.image-tag }}
+        format: table
+        exit-code: 1
+        ignore-unfixed: true
+        skip-dirs: ${{ inputs.trivy-skip-dirs }}
+        vuln-type: 'os,library'
+        severity: 'CRITICAL'
+
+    

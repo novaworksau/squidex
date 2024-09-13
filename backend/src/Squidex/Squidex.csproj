@@ -16,6 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\extensions\Squidex.Extensions.AssetSAS\Squidex.Extensions.AssetSAS.csproj" />
     <ProjectReference Include="..\..\extensions\Squidex.Extensions\Squidex.Extensions.csproj" />
     <ProjectReference Include="..\Migrations\Migrations.csproj" />
     <ProjectReference Include="..\Squidex.Domain.Apps.Core.Model\Squidex.Domain.Apps.Core.Model.csproj" />
@@ -89,6 +90,7 @@
 
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <UserSecretsId>777d7862-e651-4f4c-849a-7e9b2b07ef8c</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

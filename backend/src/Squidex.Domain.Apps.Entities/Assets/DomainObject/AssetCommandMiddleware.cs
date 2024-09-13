@@ -6,6 +6,7 @@
 // ==========================================================================
 
 using System.Security.Cryptography;
+using Microsoft.Extensions.Options;
 using Squidex.Assets;
 using Squidex.Domain.Apps.Core.Assets;
 using Squidex.Domain.Apps.Entities.Assets.Commands;
@@ -67,8 +68,7 @@ public sealed class AssetCommandMiddleware : CachingDomainObjectMiddleware<Asset
         }
     }
 
-    private async Task UploadWithDuplicateCheckAsync(CommandContext context, UploadAssetCommand command, bool duplicate, NextDelegate next,
-        CancellationToken ct)
+    private async Task UploadWithDuplicateCheckAsync(CommandContext context, UploadAssetCommand command, bool duplicate, NextDelegate next,        CancellationToken ct)
     {
         // Add the file Id to the command, so we can access it later in the script.
         command.FileId = context.ContextId.ToString();
@@ -182,4 +182,5 @@ public sealed class AssetCommandMiddleware : CachingDomainObjectMiddleware<Asset
             await metadataSource.EnhanceAsync(command, ct);
         }
     }
+
 }
