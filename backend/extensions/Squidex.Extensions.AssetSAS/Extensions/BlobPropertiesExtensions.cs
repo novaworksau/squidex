@@ -21,6 +21,11 @@ internal static class BlobPropertiesExtensions
     /// </returns>
     public static string ChecksumHash(this BlobProperties properties, bool upperCase = false)
     {
+        if(properties?.ContentHash == null)
+        {
+            return string.Empty;
+        }
+
         var bytes = properties.ContentHash;
         StringBuilder result = new StringBuilder(bytes.Length * 2);
 

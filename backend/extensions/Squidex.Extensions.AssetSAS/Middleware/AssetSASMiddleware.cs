@@ -10,13 +10,11 @@ using Squidex.Assets;
 using Squidex.Domain.Apps.Core.Assets;
 using Squidex.Domain.Apps.Entities;
 using Squidex.Domain.Apps.Entities.Assets;
-using Squidex.Domain.Apps.Entities.Assets.Commands;
 using Squidex.Domain.Apps.Entities.Assets.DomainObject;
 using Squidex.Domain.Apps.Entities.Assets.Queries;
 using Squidex.Infrastructure;
 using Squidex.Infrastructure.Commands;
 using Squidex.Infrastructure.Validation;
-using Squidex.Web;
 using System.Reflection;
 
 namespace Squidex.Extensions.AssetSAS.Middleware;
@@ -140,6 +138,7 @@ public class AssetSASCustomMiddleware : ICustomCommandMiddleware
             case UpsertAssetSASCommand upsert:
                 await UploadWithDuplicateCheckAsync(context, upsert, upsert.Duplicate, next, ct);
                 break;
+
             default:
                 await next(context, ct);
                 break;
@@ -158,6 +157,43 @@ public class AssetSASCustomMiddleware : ICustomCommandMiddleware
     {
         var initHash = blobProperties.ChecksumHash();
         return $"{initHash}{file.FileName}{blobProperties.ContentLength}".ToSha256Base64();
+    }
+
+    /// <summary>
+    /// Enrich result asynchronous.
+    /// </summary>
+    /// <param name="context"> The context.</param>
+    /// <param name="result"> The result.</param>
+    /// <param name="ct"> A token that allows processing to be cancelled.</param>
+    /// <returns>
+    /// The enrich result.
+    /// </returns>
+    private async Task<object> EnrichResultAsync(CommandContext context, CommandResult result, CancellationToken ct)
+    {
+        var payload = result.Payload;
+        if (payload is not Asset asset)
+        {
+            return payload;
+        }
+
+        if (result.IsChanged && context.Command is UploadAssetSASCommand)
+        {
+            var tempFile = context.ContextId.ToString();
+            try
+            {
+                await _assetFileStore.CopyAsync(tempFile, asset.AppId.Id, asset.Id, asset.FileVersion, null, ct);
+            }
+            catch (AssetAlreadyExistsException)
+            {
+            }
+        }
+
+        if (payload is not EnrichedAsset)
+        {
+            payload = await _assetEnricher.EnrichAsync(asset, _contextProvider.Context, ct);
+        }
+
+        return payload;
     }
 
     /// <summary>
@@ -200,6 +236,11 @@ public class AssetSASCustomMiddleware : ICustomCommandMiddleware
             {
                 throw new AssetStoreException($"Copy of temporary file failed: {blobProperties.CopyStatus}");
             }
+
+            if (blobProperties.ContentHash == null)
+            {
+                blobProperties = await blobTarget.GetPropertiesAsync(cancellationToken: ct);
+            }
         }
         catch (RequestFailedException ex) when (ex.Status == 409)
         {
@@ -213,29 +254,6 @@ public class AssetSASCustomMiddleware : ICustomCommandMiddleware
         command.MimeType = GetMimeTypeMap(command, blobProperties);
         command.FileSize = blobProperties.ContentLength;
         command.FileHash = ComputeHash(command, blobProperties);
-    }
-
-    /// <summary>
-    /// Gets mime type map.
-    /// </summary>
-    /// <param name="command"> The command.</param>
-    /// <param name="blobProperties"> The BLOB properties.</param>
-    /// <returns>
-    /// The mime type map.
-    /// </returns>
-    private string GetMimeTypeMap(UploadAssetSASCommand command, BlobProperties  blobProperties)
-    {
-        var mimeType = (blobProperties.ContentType ?? "application/octet-stream").ToLowerInvariant();
-
-        if(mimeType.Equals("application/octet-stream"))
-        {
-            var extension = command.FileName.FileType();
-            if (!string.IsNullOrWhiteSpace(extension) && MimeTypes.TryGetMimeType(command.FileName, out var mt))
-            {
-                mimeType = mt;
-            }
-        }
-        return mimeType;
     }
 
     /// <summary>
@@ -284,6 +302,29 @@ public class AssetSASCustomMiddleware : ICustomCommandMiddleware
         await blobContainer.CreateIfNotExistsAsync(cancellationToken: ct);
 
         return blobContainer;
+    }
+
+    /// <summary>
+    /// Gets mime type map.
+    /// </summary>
+    /// <param name="command"> The command.</param>
+    /// <param name="blobProperties"> The BLOB properties.</param>
+    /// <returns>
+    /// The mime type map.
+    /// </returns>
+    private string GetMimeTypeMap(UploadAssetSASCommand command, BlobProperties blobProperties)
+    {
+        var mimeType = (blobProperties.ContentType ?? "application/octet-stream").ToLowerInvariant();
+
+        if (mimeType.Equals("application/octet-stream"))
+        {
+            var extension = command.FileName.FileType();
+            if (!string.IsNullOrWhiteSpace(extension) && MimeTypes.TryGetMimeType(command.FileName, out var mt))
+            {
+                mimeType = mt;
+            }
+        }
+        return mimeType;
     }
 
     /// <summary>
@@ -369,46 +410,8 @@ public class AssetSASCustomMiddleware : ICustomCommandMiddleware
 
         await _domainObjectCache.SetAsync(f.UniqueId, oldSnapshot.Version, oldSnapshot, default);
         await _domainObjectCache.SetAsync(f.UniqueId, f.Snapshot.Version, f.Snapshot, default);
-        
+
         var payload = await EnrichResultAsync(context, r, ct);
         context.Complete(payload);
-
-    }
-
-    /// <summary>
-    /// Enrich result asynchronous.
-    /// </summary>
-    /// <param name="context"> The context.</param>
-    /// <param name="result"> The result.</param>
-    /// <param name="ct"> A token that allows processing to be cancelled.</param>
-    /// <returns>
-    /// The enrich result.
-    /// </returns>
-    private async Task<object> EnrichResultAsync(CommandContext context, CommandResult result, CancellationToken ct)
-    {
-        var payload = result.Payload;
-        if (payload is not Asset asset)
-        {
-            return payload;
-        }
-
-        if (result.IsChanged && context.Command is UploadAssetSASCommand)
-        {
-            var tempFile = context.ContextId.ToString();
-            try
-            {
-                await _assetFileStore.CopyAsync(tempFile, asset.AppId.Id, asset.Id, asset.FileVersion, null, ct);
-            }
-            catch (AssetAlreadyExistsException)
-            {
-            }
-        }
-
-        if (payload is not EnrichedAsset)
-        {
-            payload = await _assetEnricher.EnrichAsync(asset, _contextProvider.Context, ct);
-        }
-
-        return payload;
     }
 }
