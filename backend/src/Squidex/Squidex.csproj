@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\extensions\Squidex.Extensions.AssetSAS\Squidex.Extensions.AssetSAS.csproj" />
+    <ProjectReference Include="..\..\extensions\Squidex.Extensions.AzureServiceBus\Squidex.Extensions.AzureServiceBus.csproj" />
     <ProjectReference Include="..\..\extensions\Squidex.Extensions\Squidex.Extensions.csproj" />
     <ProjectReference Include="..\Migrations\Migrations.csproj" />
     <ProjectReference Include="..\Squidex.Domain.Apps.Core.Model\Squidex.Domain.Apps.Core.Model.csproj" />

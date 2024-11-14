@@ -365,8 +365,7 @@ public class AssetSASCustomMiddleware : ICustomCommandMiddleware
 
             if (!duplicate)
             {
-                var existing =
-                await _assetQuery.FindByHashAsync(_contextProvider.Context,
+                var existing = await _assetQuery.FindByHashAsync(_contextProvider.Context,
                         command.FileHash,
                         command.FileName,
                         command.FileSize,
