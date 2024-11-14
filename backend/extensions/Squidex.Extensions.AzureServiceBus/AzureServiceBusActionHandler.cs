@@ -106,7 +106,7 @@ public class AzureServiceBusActionHandler : RuleActionHandler<AzureServiceBusAct
             Hostname = hostName!,
             TopicName = topicName!,
             AccessKey = action.AccessKey,
-            AccessKeyName = action.AceessKeyName,
+            AccessKeyName = action.AccessKeyName,
             MessageBodyV2 = requestBody
         };
 

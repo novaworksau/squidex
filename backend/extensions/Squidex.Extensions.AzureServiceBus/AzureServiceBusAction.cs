@@ -53,7 +53,7 @@ public sealed record AzureServiceBusAction : RuleAction
     /// </value>
     [Display(Name = "Access Key Name", Description = "Enter the access key name for the service bus topic (leave blank to use managed identities).")]
     [Editor(RuleFieldEditor.Text)]
-    public string? AceessKeyName { get; set; }
+    public string? AccessKeyName { get; set; }
 
     /// <summary>
     /// Gets or sets the access key.
@@ -90,7 +90,7 @@ public sealed record AzureServiceBusAction : RuleAction
             yield return new ValidationError("Topic must be valid azure topic name.", nameof(TopicName));
         }
 
-        if((!string.IsNullOrEmpty(AccessKey) && string.IsNullOrEmpty(AceessKeyName) ) || (string.IsNullOrEmpty(AccessKey) && !string.IsNullOrEmpty(AceessKeyName)))
+        if((!string.IsNullOrEmpty(AccessKey) && string.IsNullOrEmpty(AccessKeyName) ) || (string.IsNullOrEmpty(AccessKey) && !string.IsNullOrEmpty(AccessKeyName)))
         {
             yield return new ValidationError("Access Key and Access Key Name must be both empty or both filled.", nameof(AccessKey));
         }
