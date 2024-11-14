@@ -16,7 +16,9 @@ RUN dotnet build --no-restore --configuration Release ./extensions/Squidex.Exten
 FROM squidex AS final
 COPY --from=build /build/Squidex.Extensions.AssetSAS.dll /app/plugins/Squidex.Extensions.AssetSAS.dll
 COPY --from=build /build/Squidex.Extensions.AzureServiceBus.dll /app/plugins/Squidex.Extensions.AzureServiceBus.dll
-COPY --from=build /build/MimeTypesMap.dll /app/MimeTypesMap.dll
+COPY --from=build /build /app
+RUN rm /app/Squidex.Extensions.AssetSAS.* && rm /app/Squidex.Extensions.AzureServiceBus.*
+#COPY --from=build /build/MimeTypesMap.dll /app/MimeTypesMap.dll
 
 ENV PLUGINS__1=/app/plugins/Squidex.Extensions.AssetSAS.dll
 ENV PLUGINS__2=/app/plugins/Squidex.Extensions.AzureServiceBus.dll
