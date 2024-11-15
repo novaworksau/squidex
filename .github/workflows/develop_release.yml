@@ -31,7 +31,6 @@ jobs:
         docker-file: "Dockerfile"
         docker-context: "."
         github-token: ${{ secrets.GITHUB_TOKEN}}
-        trivy-enabled: false
 
     - name: Publish Docker Images
       uses: ./.github/actions/publish-container
