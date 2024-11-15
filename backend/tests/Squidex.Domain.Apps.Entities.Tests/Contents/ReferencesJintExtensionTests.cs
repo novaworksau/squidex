@@ -15,6 +15,7 @@ using Squidex.Domain.Apps.Core.TestHelpers;
 using Squidex.Domain.Apps.Entities.TestHelpers;
 using Squidex.Infrastructure;
 using Squidex.Infrastructure.Json.Objects;
+using Squidex.Infrastructure.Validation;
 
 namespace Squidex.Domain.Apps.Entities.Contents;
 
@@ -46,6 +47,16 @@ public class ReferencesJintExtensionTests : GivenContext, IClassFixture<Translat
     }
 
     [Fact]
+    public async Task Should_throw_exception_if_callback_is_null_on_getReference()
+    {
+        var (vars, _) = SetupReferenceVars(1);
+
+        var script = @"getReference('id')";
+
+        await Assert.ThrowsAsync<ValidationException>(() => sut.ExecuteAsync(vars, script, ct: CancellationToken));
+    }
+
+    [Fact]
     public async Task Should_resolve_reference()
     {
         var (vars, _) = SetupReferenceVars(1);
@@ -67,6 +78,16 @@ public class ReferencesJintExtensionTests : GivenContext, IClassFixture<Translat
     }
 
     [Fact]
+    public async Task Should_throw_exception_if_callback_is_null_on_getReferenceV2()
+    {
+        var (vars, _) = SetupReferenceVars(1);
+
+        var script = @"getReferenceV2('id')";
+
+        await Assert.ThrowsAsync<ValidationException>(() => sut.ExecuteAsync(vars, script, ct: CancellationToken));
+    }
+
+    [Fact]
     public async Task Should_resolve_reference_v2()
     {
         var (vars, _) = SetupReferenceVars(1);
@@ -85,6 +106,16 @@ public class ReferencesJintExtensionTests : GivenContext, IClassFixture<Translat
         var actual = (await sut.ExecuteAsync(vars, script, ct: CancellationToken)).ToString();
 
         Assert.Equal(Cleanup(expected), Cleanup(actual));
+    }
+
+    [Fact]
+    public async Task Should_throw_exception_if_callback_is_null_on_getReferences()
+    {
+        var (vars, _) = SetupReferenceVars(1);
+
+        var script = @"getReferences('id')";
+
+        await Assert.ThrowsAsync<ValidationException>(() => sut.ExecuteAsync(vars, script, ct: CancellationToken));
     }
 
     [Fact]
