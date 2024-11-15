@@ -105,8 +105,8 @@ USER appuser
 EXPOSE 8080
 EXPOSE 8443
 
-ENV PLUGINS__1=/app/plugins/Squidex.Extensions.AssetSAS.dll
-ENV PLUGINS__2=/app/plugins/Squidex.Extensions.AzureServiceBus.dll
+ENV PLUGINS__1=/app/Squidex.Extensions.AssetSAS.dll
+ENV PLUGINS__2=/app/Squidex.Extensions.AzureServiceBus.dll
 
 ENTRYPOINT ["dotnet", "Squidex.dll"]
 
