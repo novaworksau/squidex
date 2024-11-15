@@ -28,7 +28,7 @@ jobs:
       with:
         image-name: ${{ env.CONTAINER_NAME}}
         image-tag: ${{ github.sha }}
-        docker-file: "Dockerfile.extension"
+        docker-file: "Dockerfile"
         docker-context: "."
         github-token: ${{ secrets.GITHUB_TOKEN}}
 

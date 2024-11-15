@@ -88,14 +88,25 @@ WORKDIR /app
 COPY --from=backend /build/ .
 COPY --from=frontend /build/browser wwwroot/build/
 
-EXPOSE 80
-EXPOSE 443
+RUN useradd -d /home/appuser -ms /bin/bash appuser
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 ENV DIAGNOSTICS__COUNTERSTOOL=/tools/dotnet-counters
 ENV DIAGNOSTICS__DUMPTOOL=/tools/dotnet-dump
 ENV DIAGNOSTICS__GCDUMPTOOL=/tools/dotnet-gcdump
 ENV DIAGNOSTICS__TRACETOOL=/tools/dotnet-trace
-ENV ASPNETCORE_HTTP_PORTS=80
+ENV ASPNETCORE_HTTP_PORTS=8080;8443
+ENV ASPNETCORE_HTTPS_PORT=8443
+
+USER appuser
+EXPOSE 8080
+EXPOSE 8443
+
+ENV PLUGINS__1=/app/plugins/Squidex.Extensions.AssetSAS.dll
+ENV PLUGINS__2=/app/plugins/Squidex.Extensions.AzureServiceBus.dll
 
 ENTRYPOINT ["dotnet", "Squidex.dll"]
 
